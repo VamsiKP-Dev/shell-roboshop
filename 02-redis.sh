@@ -11,7 +11,7 @@ R="\e[31m"
 G="\e[32m"
 Y="\e[33m"
 N="\e[0m"
-TIMESTAMP=$(date "+%Y-%m-%d %H:%M:S")
+TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
 
 if [ $USERID -ne 0 ]; then
     echo -e "$TIMESTAMP [ERROR] $R Please run this script with root access $N" | tee -a $LOGS_FILE
@@ -31,10 +31,10 @@ dnf module disable redis -y &>> $LOGS_FILE
 dnf module enable redis:7 -y &>> $LOGS_FILE
 dnf install redis -y &>> $LOGS_FILE
 VALIDATE $? "Installing Redis:7"
-
-sed -i -e 's/127.0.0.1/0.0.0.0/g' -e '/potected-mode/ c protected-mode no' /etc/redis/redis.conf
+ 
+sed -i -e 's/127.0.0.1/0.0.0.0/g' -e '/protected-mode/ c protected-mode no' /etc/redis/redis.conf
 VALIDATE $? "Allowing remote connections"
 
-dnf module disable redis &>> $LOGS_FILE
-dnf module enable redis &>> $LOGS_FILE
+systemctl enable redis &>> $LOGS_FILE
+systemctl start redis &>> $LOGS_FILE
 VALIDATE $? "Started Redis"
