@@ -3,8 +3,8 @@
 #export PATH=$PATH:/usr/local/bin
 
 AMI_ID="ami-0220d79f3f480ecf5"
-ZONE_ID="Z03822472J12MWULO7O9D" # replace with your zone ID
-DOMAIN_NAME="daws90s.sbs" # replace with your domain
+ZONE_ID="Z07086101C1CVP7AT2UK4" # replace with your zone ID
+DOMAIN_NAME="daws90s.shop" # replace with your domain name
 R="\e[31m"
 G="\e[32m"
 Y="\e[33m"
@@ -47,7 +47,11 @@ do
             )
             echo "Launched Instance: $INSTANCE_ID"
 
-            # update R53 record
+        else
+            echo "roboshop-$instance already running: $INSTANCE_ID"
+        fi
+
+        # update R53 record
         if [ $instance == "frontend" ]; then
             IP=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
@@ -61,7 +65,7 @@ do
             )
             R53_RECORD="$instance.$DOMAIN_NAME"
         fi
-        #### Updating R53 Record ####
+
         aws route53 change-resource-record-sets \
         --hosted-zone-id $ZONE_ID \
         --change-batch '
@@ -84,14 +88,13 @@ do
                 ]
             }
         '
-            echo "updated R53 record for: $instance "
+        echo "updated R53 record for: $instance"
+    else
+        if [ $INSTANCE_ID == "None" ]; then
+            echo "$instance already destroyed, nothing to do..."
         else
-            if [ $INSTANCE_ID == "None" ]; then
-                echo "$instance already destroyed, nothing to do.."
-            else
-                aws ec2 terminate-instances --instance-ids $INSTANCE_ID
-                echo "Terminating Instance: $instance"
-
-            fi
+            aws ec2 terminate-instances --instance-ids $INSTANCE_ID
+            echo "Terminating Instance: $instance"
+        fi
     fi
 done
